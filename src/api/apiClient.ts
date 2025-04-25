@@ -1,4 +1,5 @@
 import { KnowledgeItem } from '../types/knowledge';
+import { Message, MessageStatus, RefinementInput } from '../types/message';
 
 // Environment variable to toggle between real and mock API
 // In a real app, this would be set in .env files for different environments
@@ -89,6 +90,59 @@ export const knowledgeApi = {
   },
 };
 
+// Message API functions
+export const messageApi = {
+  // Get all messages for an auditor with optional status filter
+  getMessages: async (auditorId: string, status?: MessageStatus): Promise<Message[]> => {
+    if (useMockApi()) {
+      const { getMessages } = await import('./__mocks__/messageApi');
+      return getMessages(auditorId, status);
+    }
+    
+    const endpoint = status 
+      ? `/messages?auditorId=${auditorId}&status=${status}`
+      : `/messages?auditorId=${auditorId}`;
+    
+    return fetchApi<Message[]>(endpoint);
+  },
+
+  // Get a single message by ID
+  getMessage: async (id: string): Promise<Message> => {
+    if (useMockApi()) {
+      const { getMessage } = await import('./__mocks__/messageApi');
+      return getMessage(id);
+    }
+    
+    return fetchApi<Message>(`/messages/${id}`);
+  },
+
+  // Update message status
+  updateMessageStatus: async (id: string, status: MessageStatus): Promise<Message> => {
+    if (useMockApi()) {
+      const { updateMessageStatus } = await import('./__mocks__/messageApi');
+      return updateMessageStatus(id, status);
+    }
+    
+    return fetchApi<Message>(`/messages/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // Regenerate response with refinement
+  regenerateResponse: async (refinement: RefinementInput): Promise<Message> => {
+    if (useMockApi()) {
+      const { regenerateResponse } = await import('./__mocks__/messageApi');
+      return regenerateResponse(refinement);
+    }
+    
+    return fetchApi<Message>(`/messages/${refinement.messageId}/regenerate`, {
+      method: 'POST',
+      body: JSON.stringify({ guidance: refinement.guidance }),
+    });
+  },
+};
+
 // Export a function to explicitly toggle mock mode (useful for development/testing)
 export const setUseMockApi = (useMock: boolean): void => {
   // In a real app, this might set a localStorage value or update a context
@@ -102,5 +156,5 @@ export const setUseMockApi = (useMock: boolean): void => {
 // Export the entire API client
 export default {
   knowledge: knowledgeApi,
-  // Add other API modules here (auth, messages, etc.)
+  messages: messageApi,
 };

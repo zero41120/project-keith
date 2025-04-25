@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import App from './App';
 
 describe('App', () => {
@@ -22,9 +22,13 @@ describe('App', () => {
   it('should have navigation links in the sidebar', () => {
     render(<App />);
     
-    // Check for navigation links
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Knowledge Base')).toBeInTheDocument();
-    expect(screen.getByText('Messages')).toBeInTheDocument();
+    // Check for navigation links in the sidebar
+    const sidebar = screen.getByTestId('sidebar');
+    
+    // Use within to scope the queries to the sidebar
+    const { getByText } = within(sidebar);
+    expect(getByText('Dashboard')).toBeInTheDocument();
+    expect(getByText('Knowledge Base')).toBeInTheDocument();
+    expect(getByText('Messages')).toBeInTheDocument();
   });
 });
